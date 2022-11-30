@@ -1,5 +1,8 @@
 *.test.*
 *.iml
+.env
+.env.*
 
 .idea/
 target/
+cache/
