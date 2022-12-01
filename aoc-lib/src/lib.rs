@@ -21,7 +21,7 @@ pub fn get_input<T, M: FnMut(&str) -> T>(day: u32, parse: M) -> Result<Vec<T>, B
     let base_dir = get_base_dir()?;
     let year: i32 = base_dir.file_name().unwrap().to_os_string().into_string().unwrap().parse()?;
 
-    let input_dir = base_dir.join("cache").join(year.to_string());
+    let input_dir = base_dir.join("cache");
     let input_path = input_dir.join(format!("{}.txt", day));
 
     if input_path.exists() {
