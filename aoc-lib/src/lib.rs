@@ -41,7 +41,8 @@ pub fn get_input<T, M: FnMut(&str) -> T>(day: u32, parse: M) -> Result<Vec<T>, B
     println!("Fetching puzzle input...");
     let resp = reqwest::blocking::Client::new()
         .get(format!("https://adventofcode.com/{}/day/{}/input", year, day))
-        .header("cookie", format!("session={}", sid))
+        .header("Cookie", format!("session={}", sid))
+        .header("User-Agent", format!("github.com/ElCholoGamer/advent-of-code-rust v{} by {}", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS")))
         .send()?;
 
     if resp.status() == StatusCode::BAD_REQUEST {
