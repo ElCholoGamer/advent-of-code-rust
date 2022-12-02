@@ -1,5 +1,5 @@
 fn main() {
-    let input = aoc_lib::get_input(1, |s| String::from(s)).unwrap();
+    let input = aoc_lib::get_input(1, |s| Ok(String::from(s))).unwrap();
     let calories_list = parse_calories_list(&input);
 
     println!("Part 1: {}", part_1(&calories_list));

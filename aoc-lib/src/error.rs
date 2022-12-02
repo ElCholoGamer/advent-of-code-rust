@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug)]
+pub type BoxedError = Box<dyn std::error::Error>;
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Error {
     MissingSID,
     InvalidSID,
@@ -18,3 +20,22 @@ impl Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GenericError {
+    info: String,
+}
+
+impl Display for GenericError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error: {}", self.info)
+    }
+}
+
+impl From<&str> for GenericError {
+    fn from(s: &str) -> Self {
+        Self { info: s.into() }
+    }
+}
+
+impl std::error::Error for GenericError {}
