@@ -12,9 +12,9 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::MissingSID => write!(f, "Could not find SID_COOKIE environment variable"),
-            Self::InvalidSID => write!(f, "The provided session cookie is invalid"),
-            Self::InputUnavailable => write!(f, "The requested input is unavailable"),
+            Self::MissingSID => write!(f, "missing SID_COOKIE environment variable"),
+            Self::InvalidSID => write!(f, "invalid session cookie"),
+            Self::InputUnavailable => write!(f, "input unavailable"),
         }
     }
 }

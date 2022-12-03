@@ -1,4 +1,4 @@
-use aoc_lib::BoxedError;
+use aoc_lib::{AocSolution, BoxedError};
 
 #[derive(Debug)]
 struct Instruction {
@@ -52,41 +52,48 @@ impl From<&str> for Instruction {
 }
 
 fn main() -> Result<(), BoxedError> {
-    let instructions = aoc_lib::get_input(2, |l| Instruction::from(l))?;
-
-    println!("Part 1: {}", part_1(&instructions));
-    println!("Part 2: {}", part_2(&instructions));
-    Ok(())
+    aoc_lib::run::<Day2>(2)
 }
 
-fn part_1(instructions: &[Instruction]) -> u32 {
-    let mut score = 0;
+struct Day2;
 
-    for Instruction { play, enemy_play } in instructions {
-        if *play == enemy_play.winning_play() {
-            score += 6; // Victory
-        } else if play == enemy_play {
-            score += 3; // Draw
+impl AocSolution for Day2 {
+    type Input = Vec<Instruction>;
+    type Output = u32;
+
+    fn parse_input(raw_input: String) -> Self::Input {
+        raw_input.lines().map(Instruction::from).collect()
+    }
+
+    fn part_1(instructions: &Self::Input) -> Result<Self::Output, BoxedError> {
+        let mut score = 0;
+
+        for Instruction { play, enemy_play } in instructions {
+            if *play == enemy_play.winning_play() {
+                score += 6; // Victory
+            } else if play == enemy_play {
+                score += 3; // Draw
+            }
+
+            score += play.score_value();
         }
 
-        score += play.score_value();
+        Ok(score)
     }
 
-    score
-}
+    fn part_2(instructions: &Self::Input) -> Result<Self::Output, BoxedError> {
+        let mut score = 0;
 
-fn part_2(instructions: &[Instruction]) -> u32 {
-    let mut score = 0;
+        for instruction in instructions {
+            let (result_score, play) = match instruction.play {
+                Play::Rock => (0, instruction.enemy_play.winning_play().winning_play()),
+                Play::Paper => (3, instruction.enemy_play.clone()),
+                Play::Scissors => (6, instruction.enemy_play.winning_play()),
+            };
 
-    for instruction in instructions {
-        let (result_score, play) = match instruction.play {
-            Play::Rock => (0, instruction.enemy_play.winning_play().winning_play()),
-            Play::Paper => (3, instruction.enemy_play.clone()),
-            Play::Scissors => (6, instruction.enemy_play.winning_play()),
-        };
+            score += play.score_value() + result_score;
+        }
 
-        score += play.score_value() + result_score;
+        Ok(score)
     }
-
-    score
 }

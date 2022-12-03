@@ -1,32 +1,33 @@
 use dotenv::dotenv;
-use std::{fs,env};
+use std::{fs, env, io};
+use std::io::Write;
+use std::fmt::Display;
 use std::path::PathBuf;
+use std::time::Instant;
+use ansi_escapes::EraseLine;
 use chrono::{FixedOffset, TimeZone, Utc};
 use reqwest::StatusCode;
+use colored::Colorize;
 
 pub mod utils;
 mod error;
 
-pub use error::{Error,BoxedError};
+pub use error::{Error, BoxedError};
 
-fn get_base_dir() -> Result<PathBuf, BoxedError> {
-    let mut dir = env::current_dir()?;
-    if dir.file_name().unwrap().to_os_string().into_string().unwrap().starts_with("day") {
-        dir.pop();
-    }
-    Ok(dir)
+pub trait AocSolution {
+    type Input;
+    type Output: Display;
+    fn parse_input(raw_input: String) -> Self::Input;
+    fn part_1(input: &Self::Input) -> Result<Self::Output, BoxedError>;
+    fn part_2(input: &Self::Input) -> Result<Self::Output, BoxedError>;
 }
 
-pub fn get_input<T, M: FnMut(&str) -> T>(day: u32, parse: M) -> Result<Vec<T>, BoxedError> {
-    let base_dir = get_base_dir()?;
-    let year: i32 = base_dir.file_name().unwrap().to_os_string().into_string().unwrap().parse()?;
-
-    let input_dir = base_dir.join("cache");
+fn get_input(day: u32, year: i32) -> Result<String, BoxedError> {
+    let input_dir = get_base_dir()?.join("cache");
     let input_path = input_dir.join(format!("{}.txt", day));
 
     if input_path.exists() {
-        let contents = fs::read_to_string(&input_path)?;
-        return Ok(contents.lines().map(parse).collect());
+        return Ok(fs::read_to_string(&input_path)?);
     }
 
     let date = Utc::now() + FixedOffset::west_opt(5 * 3600).unwrap();
@@ -51,9 +52,51 @@ pub fn get_input<T, M: FnMut(&str) -> T>(day: u32, parse: M) -> Result<Vec<T>, B
         return Err(Error::InputUnavailable.into());
     }
 
-    let input = resp.text()?;
+    let contents = resp.text()?;
     fs::create_dir_all(input_dir)?;
-    fs::write(input_path, &input)?;
+    fs::write(input_path, &contents)?;
 
-    Ok(input.lines().map(parse).collect())
+    Ok(contents)
+}
+
+pub fn run<S: AocSolution>(day: u32) -> Result<(), BoxedError> {
+    let year: i32 = get_base_dir()?.file_name().unwrap().to_os_string().into_string().unwrap().parse()?;
+    let raw_input = get_input(day, year)?;
+    let input = S::parse_input(raw_input);
+
+    println!("{}", format!("┌{:─^32}┐", "").blue());
+    println!("{0} {1:^30} {0}", "│".blue(), format!("Advent of Code {} - Day {}", year, day).blue().bold());
+    println!("{}", format!("└{:─^32}┘", "").blue());
+
+    println!("{}", "Part 1".blue().bold());
+    benchmark_part(|| S::part_1(&input))?;
+    println!("{}", "Part 2".blue().bold());
+    benchmark_part(|| S::part_2(&input))?;
+
+    Ok(())
+}
+
+fn benchmark_part<F: Fn() -> Result<O, BoxedError>, O: Display>(f: F) -> io::Result<()> {
+    print!("{}", "Running...".yellow());
+    io::stdout().flush()?;
+
+    let start = Instant::now();
+    let output = f();
+    let elapsed = start.elapsed();
+
+    print!("\r{}", EraseLine);
+    match output {
+        Ok(result) => println!("{}", format!("Result: {}", result).green()),
+        Err(e) => println!("{}", format!("{} {}", "Error:".bold(), e).red()),
+    }
+    println!("{}", format!("Elapsed: {}ms", elapsed.as_millis()).yellow());
+    Ok(())
+}
+
+fn get_base_dir() -> Result<PathBuf, BoxedError> {
+    let mut dir = env::current_dir()?;
+    if dir.file_name().unwrap().to_os_string().into_string().unwrap().starts_with("day") {
+        dir.pop();
+    }
+    Ok(dir)
 }

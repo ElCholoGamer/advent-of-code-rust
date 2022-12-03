@@ -1,34 +1,38 @@
-fn main() {
-    let input = aoc_lib::get_input(1, |s| String::from(s)).unwrap();
-    let calories_list = parse_calories_list(&input);
+use aoc_lib::{AocSolution, BoxedError};
 
-    println!("Part 1: {}", part_1(&calories_list));
-    println!("Part 2: {}", part_2(&calories_list));
+fn main() -> Result<(), BoxedError> {
+    aoc_lib::run::<Day1>(1)
 }
 
-fn parse_calories_list(input: &[String]) -> Vec<u32> {
-    let mut result = Vec::new();
-    let mut tmp = 0;
+struct Day1;
 
-    for line in input {
-        if line.is_empty() {
-            result.push(tmp);
-            tmp = 0;
-        } else {
-            tmp += line.parse::<u32>().unwrap();
+impl AocSolution for Day1 {
+    type Input = Vec<u32>;
+    type Output = u32;
+
+    fn parse_input(raw_input: String) -> Self::Input {
+        let mut total_calories = Vec::new();
+        let mut tmp = 0;
+
+        for line in raw_input.lines() {
+            if line.is_empty() {
+                total_calories.push(tmp);
+                tmp = 0;
+            } else {
+                tmp += line.parse::<u32>().unwrap();
+            }
         }
+
+        total_calories
     }
 
-    result
-}
+    fn part_1(total_calories: &Self::Input) -> Result<Self::Output, BoxedError> {
+        Ok(*total_calories.iter().max().unwrap_or(&0))
+    }
 
-fn part_1(calories_list: &[u32]) -> u32 {
-    *calories_list.iter().max().unwrap_or(&0)
-}
-
-fn part_2(calories: &[u32]) -> u32 {
-    let mut calories_list = Vec::from(calories);
-    calories_list.sort_by(|a, b| b.cmp(a));
-
-    calories_list[0] + calories_list[1] + calories_list[2]
+    fn part_2(total_calories: &Self::Input) -> Result<Self::Output, BoxedError> {
+        let mut total_calories = total_calories.clone();
+        total_calories.sort_by(|a, b| b.cmp(a));
+        Ok(total_calories[0] + total_calories[1] + total_calories[2])
+    }
 }
