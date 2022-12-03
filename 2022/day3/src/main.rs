@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use aoc_lib::BoxedError;
 
 fn item_priority(char: u8) -> u32 {
@@ -18,31 +17,23 @@ fn main() -> Result<(), BoxedError> {
 
 fn part_1(rucksacks: &[String]) -> u32 {
     rucksacks.iter().fold(0, |sum, rucksack| {
-        let mut s = 0u32;
+        let bytes = rucksack.bytes().collect::<Vec<_>>();
+        let mid = rucksack.len() / 2;
 
-        let (first, second) = rucksack.split_at(rucksack.len() / 2);
-        let unique_bytes_1 = first.bytes().collect::<HashSet<_>>();
-        let unique_bytes_2 = second.bytes().collect::<HashSet<_>>();
-        for byte in unique_bytes_1 {
-            if unique_bytes_2.contains(&byte) {
-                s += item_priority(byte);
+        for &byte in bytes[..mid].iter() {
+            if bytes[mid..].contains(&byte) {
+                return sum + item_priority(byte);
             }
         }
 
-        sum + s
+        panic!("No common item type found");
     })
 }
 
 fn part_2(rucksacks: &[String]) -> u32 {
-    let groups = rucksacks.chunks_exact(3).collect::<Vec<_>>();
-
-    groups.iter().fold(0, |sum, &group| {
-        let unique_bytes_1 = group[0].bytes().collect::<HashSet<_>>();
-        let unique_bytes_2 = group[1].bytes().collect::<HashSet<_>>();
-        let unique_bytes_3 = group[2].bytes().collect::<HashSet<_>>();
-
-        for byte in unique_bytes_1 {
-            if unique_bytes_2.contains(&byte) && unique_bytes_3.contains(&byte) {
+    rucksacks.chunks_exact(3).fold(0, |sum, group| {
+        for byte in group[0].bytes() {
+            if group[1].bytes().any(|b| b == byte) && group[2].bytes().any(|b| b == byte) {
                 return sum + item_priority(byte);
             }
         }
