@@ -1,6 +1,5 @@
 use dotenv::dotenv;
-use std::{fs, env, io};
-use std::io::Write;
+use std::{fs, env};
 use std::fmt::Display;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -23,7 +22,18 @@ pub trait AocSolution {
 }
 
 fn get_input(day: u32, year: i32) -> Result<String, BoxedError> {
-    let input_dir = get_base_dir()?.join("cache");
+    let base_dir = get_base_dir()?;
+
+    if env::args().any(|a| a == "--test" || a == "-T") {
+        let test_input_path = base_dir.join("test").join(format!("{}.txt", day));
+        if !test_input_path.exists() {
+            return Err(Error::TestInputNotFound.into());
+        }
+
+        return Ok(fs::read_to_string(test_input_path)?);
+    }
+
+    let input_dir = base_dir.join("cache");
     let input_path = input_dir.join(format!("{}.txt", day));
 
     if input_path.exists() {
@@ -69,17 +79,14 @@ pub fn run<S: AocSolution>(day: u32) -> Result<(), BoxedError> {
     println!("{}", format!("└{:─^32}┘", "").blue());
 
     println!("{}", "Part 1".blue().bold());
-    benchmark_part(|| S::part_1(&input))?;
+    benchmark_part(|| S::part_1(&input));
     println!("{}", "Part 2".blue().bold());
-    benchmark_part(|| S::part_2(&input))?;
+    benchmark_part(|| S::part_2(&input));
 
     Ok(())
 }
 
-fn benchmark_part<F: Fn() -> Result<O, BoxedError>, O: Display>(f: F) -> io::Result<()> {
-    print!("{}", "Running...".yellow());
-    io::stdout().flush()?;
-
+fn benchmark_part<F: Fn() -> Result<O, BoxedError>, O: Display>(f: F)  {
     let start = Instant::now();
     let output = f();
     let elapsed = start.elapsed();
@@ -90,7 +97,6 @@ fn benchmark_part<F: Fn() -> Result<O, BoxedError>, O: Display>(f: F) -> io::Res
         Err(e) => println!("{}", format!("{} {}", "Error:".bold(), e).red()),
     }
     println!("{}", format!("Elapsed: {}ms", elapsed.as_millis()).yellow());
-    Ok(())
 }
 
 fn get_base_dir() -> Result<PathBuf, BoxedError> {
