@@ -1,4 +1,4 @@
-use aoc_lib::{BoxedError, GenericError};
+use aoc_lib::BoxedError;
 
 #[derive(Debug)]
 struct Instruction {
@@ -31,30 +31,28 @@ impl Play {
     }
 }
 
-impl std::str::FromStr for Instruction {
-    type Err = BoxedError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl From<&str> for Instruction {
+    fn from(s: &str) -> Self {
         let (a, b) = s.split_once(' ').expect("invalid instruction");
         let enemy_play = match a {
             "A" => Play::Rock,
             "B" => Play::Paper,
             "C" => Play::Scissors,
-            _ => return Err(GenericError::from("Invalid first play").into()),
+            _ => panic!("Invalid first play"),
         };
         let play = match b {
             "X" => Play::Rock,
             "Y" => Play::Paper,
             "Z" => Play::Scissors,
-            _ => return Err(GenericError::from("Invalid second play").into()),
+            _ => panic!("Invalid second play"),
         };
 
-        Ok(Self { play, enemy_play })
+        Self { play, enemy_play }
     }
 }
 
 fn main() -> Result<(), BoxedError> {
-    let instructions = aoc_lib::get_input(2, |l| l.parse::<Instruction>())?;
+    let instructions = aoc_lib::get_input(2, |l| Instruction::from(l))?;
 
     println!("Part 1: {}", part_1(&instructions));
     println!("Part 2: {}", part_2(&instructions));

@@ -7,7 +7,7 @@ use reqwest::StatusCode;
 pub mod utils;
 mod error;
 
-pub use error::{Error,BoxedError,GenericError};
+pub use error::{Error,BoxedError};
 
 fn get_base_dir() -> Result<PathBuf, BoxedError> {
     let mut dir = env::current_dir()?;
@@ -17,7 +17,7 @@ fn get_base_dir() -> Result<PathBuf, BoxedError> {
     Ok(dir)
 }
 
-pub fn get_input<T, M: FnMut(&str) -> Result<T, BoxedError>>(day: u32, parse: M) -> Result<Vec<T>, BoxedError> {
+pub fn get_input<T, M: FnMut(&str) -> T>(day: u32, parse: M) -> Result<Vec<T>, BoxedError> {
     let base_dir = get_base_dir()?;
     let year: i32 = base_dir.file_name().unwrap().to_os_string().into_string().unwrap().parse()?;
 
@@ -26,7 +26,7 @@ pub fn get_input<T, M: FnMut(&str) -> Result<T, BoxedError>>(day: u32, parse: M)
 
     if input_path.exists() {
         let contents = fs::read_to_string(&input_path)?;
-        return contents.lines().map(parse).collect();
+        return Ok(contents.lines().map(parse).collect());
     }
 
     let date = Utc::now() + FixedOffset::west_opt(5 * 3600).unwrap();
@@ -55,5 +55,5 @@ pub fn get_input<T, M: FnMut(&str) -> Result<T, BoxedError>>(day: u32, parse: M)
     fs::create_dir_all(input_dir)?;
     fs::write(input_path, &input)?;
 
-    input.lines().map(parse).collect()
+    Ok(input.lines().map(parse).collect())
 }
