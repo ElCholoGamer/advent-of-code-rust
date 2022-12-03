@@ -23,6 +23,7 @@ impl AocSolution for Day1 {
             }
         }
 
+        total_calories.push(tmp);
         total_calories
     }
 
