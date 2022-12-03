@@ -19,25 +19,20 @@ fn part_1(rucksacks: &[String]) -> u32 {
     rucksacks.iter().fold(0, |sum, rucksack| {
         let bytes = rucksack.bytes().collect::<Vec<_>>();
         let mid = rucksack.len() / 2;
+        let common_item = bytes[..mid].iter()
+            .find(|byte| bytes[mid..].contains(byte))
+            .expect("No common item type found");
 
-        for &byte in bytes[..mid].iter() {
-            if bytes[mid..].contains(&byte) {
-                return sum + item_priority(byte);
-            }
-        }
-
-        panic!("No common item type found");
+        sum + item_priority(*common_item)
     })
 }
 
 fn part_2(rucksacks: &[String]) -> u32 {
     rucksacks.chunks_exact(3).fold(0, |sum, group| {
-        for byte in group[0].bytes() {
-            if group[1].bytes().any(|b| b == byte) && group[2].bytes().any(|b| b == byte) {
-                return sum + item_priority(byte);
-            }
-        }
+        let badge_item = &group[0].bytes()
+            .find(|&byte| group[1].bytes().any(|b| b == byte) && group[2].bytes().any(|b| b == byte))
+            .expect("No badge item type found");
 
-        panic!("No badge item type found");
+        sum + item_priority(*badge_item)
     })
 }
