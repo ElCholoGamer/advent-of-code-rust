@@ -15,21 +15,6 @@ impl FromStrExt for Range<u32> {
     }
 }
 
-struct AssignmentPair {
-    first: Range<u32>,
-    second: Range<u32>,
-}
-
-impl From<&str> for AssignmentPair {
-    fn from(s: &str) -> Self {
-        let (first, second) = s.split_once(',').unwrap();
-        Self {
-            first: Range::from_str(first),
-            second: Range::from_str(second),
-        }
-    }
-}
-
 fn main() -> Result<(), BoxedError> {
     aoc_lib::run::<Day4>(4)
 }
@@ -37,15 +22,18 @@ fn main() -> Result<(), BoxedError> {
 struct Day4;
 
 impl AocSolution for Day4 {
-    type Input = Vec<AssignmentPair>;
+    type Input = Vec<(Range<u32>, Range<u32>)>;
     type Output = usize;
 
     fn parse_input(raw_input: String) -> Self::Input {
-        raw_input.lines().map(AssignmentPair::from).collect()
+        raw_input.lines().map(|line| {
+            let (first, second) = s.split_once(',').unwrap();
+            (Range::from_str(first), Range::from_str(second))
+        }).collect()
     }
 
     fn part_1(input: &Self::Input) -> Result<Self::Output, BoxedError> {
-        let contained_pairs = input.iter().filter(|AssignmentPair { first, second }|
+        let contained_pairs = input.iter().filter(|(first, second)|
             (first.start <= second.start && first.end >= second.end)
                 || (second.start <= first.start && second.end >= first.end)
         );
@@ -53,7 +41,7 @@ impl AocSolution for Day4 {
     }
 
     fn part_2(input: &Self::Input) -> Result<Self::Output, BoxedError> {
-        let overlapping_pairs = input.iter().filter(|AssignmentPair { first, second }|
+        let overlapping_pairs = input.iter().filter(|(first, second)|
             first.start <= second.end && first.end >= second.start
         );
         Ok(overlapping_pairs.count())
