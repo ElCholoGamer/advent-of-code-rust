@@ -8,6 +8,7 @@ pub enum Error {
     InvalidSID,
     InputUnavailable,
     TestInputNotFound,
+    UnimplementedSolution,
     Misc(String)
 }
 
@@ -18,6 +19,7 @@ impl Display for Error {
             Self::InvalidSID => write!(f, "invalid session cookie"),
             Self::InputUnavailable => write!(f, "input unavailable"),
             Self::TestInputNotFound => write!(f, "test input not found"),
+            Self::UnimplementedSolution => write!(f, "unimplemented solution"),
             Self::Misc(msg) => write!(f, "{}", msg),
         }
     }
