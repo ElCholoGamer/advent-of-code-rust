@@ -8,6 +8,7 @@ pub enum Error {
     InvalidSID,
     InputUnavailable,
     TestInputNotFound,
+    Misc(String)
 }
 
 impl Display for Error {
@@ -16,7 +17,8 @@ impl Display for Error {
             Self::MissingSID => write!(f, "missing SID_COOKIE environment variable"),
             Self::InvalidSID => write!(f, "invalid session cookie"),
             Self::InputUnavailable => write!(f, "input unavailable"),
-            Self::TestInputNotFound => write!(f, "test input not found")
+            Self::TestInputNotFound => write!(f, "test input not found"),
+            Self::Misc(msg) => write!(f, "{}", msg),
         }
     }
 }
