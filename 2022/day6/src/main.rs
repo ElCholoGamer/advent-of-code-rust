@@ -8,10 +8,10 @@ fn main() -> Result<(), BoxedError> {
 fn find_marker(message: &str, marker_len: usize) -> Option<usize> {
     let mut i = 0;
     'main: while i < message.len() - marker_len {
-        let mut map = HashMap::new();
+        let mut seen_char_indices = HashMap::new();
 
         for (c_index, char) in message[i..(i + marker_len)].chars().enumerate() {
-            if let Some(previous_index) = map.insert(char, c_index) {
+            if let Some(previous_index) = seen_char_indices.insert(char, c_index) {
                 i += previous_index + 1;
                 continue 'main;
             }
