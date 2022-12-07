@@ -2,13 +2,13 @@ use dotenv::dotenv;
 use std::{fs, env};
 use std::fmt::Display;
 use std::path::PathBuf;
-use std::time::Instant;
-use ansi_escapes::EraseLine;
+use std::time::{Duration, Instant};
 use chrono::{FixedOffset, TimeZone, Utc};
 use reqwest::StatusCode;
 use colored::Colorize;
 
 pub mod utils;
+pub mod structs;
 mod error;
 
 pub use error::{Error, BoxedError};
@@ -71,12 +71,14 @@ fn get_input(day: u32, year: i32) -> Result<String, BoxedError> {
 
 pub fn run<S: AocSolution>(day: u32) -> Result<(), BoxedError> {
     let year: i32 = get_base_dir()?.file_name().unwrap().to_os_string().into_string().unwrap().parse()?;
-    let raw_input = get_input(day, year)?;
-    let input = S::parse_input(raw_input);
 
     println!("{}", format!("┌{:─^32}┐", "").blue());
     println!("{0} {1:^30} {0}", "│".blue(), format!("Advent of Code {} - Day {}", year, day).blue().bold());
     println!("{}", format!("└{:─^32}┘", "").blue());
+
+    let raw_input = get_input(day, year)?;
+    let (input, elapsed) = with_benchmark(|| S::parse_input(raw_input.clone()));
+    println!("{}", format!("Input parsed in {}ms", elapsed.as_millis()).yellow());
 
     println!("{}", "Part 1".blue().bold());
     benchmark_part(|| S::part_1(&input));
@@ -87,11 +89,8 @@ pub fn run<S: AocSolution>(day: u32) -> Result<(), BoxedError> {
 }
 
 fn benchmark_part<F: Fn() -> Result<O, BoxedError>, O: Display>(f: F)  {
-    let start = Instant::now();
-    let output = f();
-    let elapsed = start.elapsed();
+    let (output, elapsed) = with_benchmark(f);
 
-    print!("\r{}", EraseLine);
     match output {
         Ok(result) => println!("{}", format!("Result: {}", result).green()),
         Err(e) => println!("{}", format!("{} {}", "Error:".bold(), e).red()),
@@ -105,4 +104,10 @@ fn get_base_dir() -> Result<PathBuf, BoxedError> {
         dir.pop();
     }
     Ok(dir)
+}
+
+fn with_benchmark<F: Fn() -> T, T>(f: F) -> (T, Duration) {
+    let start = Instant::now();
+    let output = f();
+    (output, start.elapsed())
 }
